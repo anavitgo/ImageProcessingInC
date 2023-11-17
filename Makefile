@@ -1,10 +1,10 @@
 CC=gcc
 SOURCES=lib/utils.c
 BINARY=out
+NUM_THREADS ?=4
 
 run:
-	./$(BINARY)
-
+	./$(BINARY) $(NUM_THREADS)
 all:
 	$(CC) -Wall main.c $(SOURCES) -o $(BINARY) -fopenmp -I lib
 omp:
