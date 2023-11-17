@@ -20,7 +20,8 @@ char *readline(FILE *stream);
 BMP readHeader(FILE *inputFile);
 void writeHeader(FILE *outputFile, BMP header);
 BMP readColorTable(FILE *inputFile, BMP header);
-void blurImage(BMP header);
+void sequentialBlurImage(BMP header);
+void parallelBlurImage(BMP header);
 void writeColorTable(BMP header, FILE *outputFile);
 void printImageInfo(BMP header);
 

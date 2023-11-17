@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
 
 #include "utils.h"
 
@@ -70,7 +71,7 @@ BMP readColorTable(FILE *inputFile, BMP header){
   return header;
 }
 
-void blurImage(BMP header){
+void sequentialBlurImage(BMP header){
 
     float v = 1.0 / 9.0;
 	float kernel[3][3]= {{v, v, v},
@@ -94,6 +95,39 @@ void blurImage(BMP header){
 			header.colorTable[(x) * header.width + (y)].blue = sumBlue;
 		}
 	}
+}
+
+void parallelBlurImage(BMP header){
+
+  float v = 1.0 / 9.0;
+	float kernel[3][3]= {{v, v, v},
+						{v, v, v},
+						{v, v, v}};
+  
+  #ifdef USE_OMP
+    #pragma omp parallel for shared(header, kernel)
+  #endif
+    for (int x = 1; x < header.height - 1; x++) {
+        for (int y = 1; y < header.width - 1; y++) {
+            float sumRed = 0.0;
+            float sumGreen = 0.0;
+            float sumBlue = 0.0;
+
+            #ifdef USE_OMP
+              #pragma omp simd reduction(+:sumRed, sumGreen, sumBlue)
+            #endif
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    sumRed += (float)kernel[i + 1][j + 1] * header.colorTable[(x + i) * header.width + (y + j)].red;
+                    sumGreen += (float)kernel[i + 1][j + 1] * header.colorTable[(x + i) * header.width + (y + j)].green;
+                    sumBlue += (float)kernel[i + 1][j + 1] * header.colorTable[(x + i) * header.width + (y + j)].blue;
+                }
+            }
+            header.colorTable[x * header.width + y].red = sumRed;
+            header.colorTable[x * header.width + y].green = sumGreen;
+            header.colorTable[x * header.width + y].blue = sumBlue;
+        }
+    }
 }
 
 void writeColorTable(BMP header, FILE *outputFile){

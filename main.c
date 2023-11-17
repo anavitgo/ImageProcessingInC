@@ -1,22 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-
+#include <omp.h>
 #include "utils.h"
 
 
 
 int main(){
 
-    clock_t start, stop;
-    start = clock();
 
     FILE *inputFile = NULL, *outputFile = NULL;
     char *filePath = NULL;
     BMP header;
 
     filePath = readline(stdin);
+    double start = omp_get_wtime();
     inputFile = fopen(filePath, "rb");
 
     if(inputFile == NULL){
@@ -40,7 +38,11 @@ int main(){
     printImageInfo(header);
     outputFile = fopen("out.bmp", "wb");
     header = readColorTable(inputFile, header);
-    blurImage(header);
+    #ifdef USE_OMP
+        parallelBlurImage(header);
+    #else
+        sequentialBlurImage(header);
+    #endif
     writeHeader(outputFile, header);
     writeColorTable(header, outputFile);
 
@@ -49,7 +51,7 @@ int main(){
     fclose(outputFile);
     free(filePath);
 
-    stop = clock();
-	printf("TIME TAKEN: %lfs\n",((double)(stop-start))/CLOCKS_PER_SEC );
+    double end = omp_get_wtime();
+	printf("TIME TAKEN: %lfs\n", end - start);
     return 0;
 }
