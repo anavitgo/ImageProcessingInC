@@ -4,9 +4,9 @@
 #include <omp.h>
 #include "utils.h"
 
+#define NUM_THREADS 4
 
-
-int main(){
+int main(int argc, char *argv[]){
 
 
     FILE *inputFile = NULL, *outputFile = NULL;
@@ -39,7 +39,12 @@ int main(){
     outputFile = fopen("out.bmp", "wb");
     header = readColorTable(inputFile, header);
     #ifdef USE_OMP
-        parallelBlurImage(header);
+        if(argc == 2){
+            printf("%d\n", atoi(argv[1]));
+            parallelBlurImage(header);
+        }else{
+            parallelBlurImage(header);
+        }
     #else
         sequentialBlurImage(header);
     #endif
