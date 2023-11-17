@@ -40,10 +40,9 @@ int main(int argc, char *argv[]){
     header = readColorTable(inputFile, header);
     #ifdef USE_OMP
         if(argc == 2){
-            printf("%d\n", atoi(argv[1]));
-            parallelBlurImage(header);
+            parallelBlurImage(header, atoi(argv[1]));
         }else{
-            parallelBlurImage(header);
+            parallelBlurImage(header, NUM_THREADS);
         }
     #else
         sequentialBlurImage(header);

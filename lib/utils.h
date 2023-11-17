@@ -21,7 +21,7 @@ BMP readHeader(FILE *inputFile);
 void writeHeader(FILE *outputFile, BMP header);
 BMP readColorTable(FILE *inputFile, BMP header);
 void sequentialBlurImage(BMP header);
-void parallelBlurImage(BMP header);
+void parallelBlurImage(BMP header, int numThreads);
 void writeColorTable(BMP header, FILE *outputFile);
 void printImageInfo(BMP header);
 

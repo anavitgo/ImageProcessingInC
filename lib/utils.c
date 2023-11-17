@@ -97,7 +97,7 @@ void sequentialBlurImage(BMP header){
 	}
 }
 
-void parallelBlurImage(BMP header){
+void parallelBlurImage(BMP header, int numThreads){
 
   float v = 1.0 / 9.0;
 	float kernel[3][3]= {{v, v, v},
@@ -105,7 +105,7 @@ void parallelBlurImage(BMP header){
 						{v, v, v}};
   
   #ifdef USE_OMP
-    #pragma omp parallel for shared(header, kernel)
+    #pragma omp parallel for shared(header, kernel) num_threads(numThreads)
   #endif
     for (int x = 1; x < header.height - 1; x++) {
         for (int y = 1; y < header.width - 1; y++) {
@@ -114,7 +114,7 @@ void parallelBlurImage(BMP header){
             float sumBlue = 0.0;
 
             #ifdef USE_OMP
-              #pragma omp simd reduction(+:sumRed, sumGreen, sumBlue)
+              #pragma omp simd reduction(+:sumRed, sumGreen, sumBlue) num_threads(numThreads)
             #endif
             for (int i = -1; i <= 1; ++i) {
                 for (int j = -1; j <= 1; ++j) {
