@@ -4,7 +4,7 @@ BINARY=out
 NUM_THREADS ?=4
 
 run:
-	./$(BINARY) $(NUM_THREADS)
+	@./$(BINARY) $(NUM_THREADS)
 all:
 	$(CC) -Wall main.c $(SOURCES) -o $(BINARY) -fopenmp -I lib
 omp:
