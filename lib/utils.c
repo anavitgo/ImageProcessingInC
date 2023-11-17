@@ -114,7 +114,7 @@ void parallelBlurImage(BMP header, int numThreads){
             float sumBlue = 0.0;
 
             #ifdef USE_OMP
-              #pragma omp simd reduction(+:sumRed, sumGreen, sumBlue) num_threads(numThreads)
+              #pragma omp simd reduction(+:sumRed, sumGreen, sumBlue)
             #endif
             for (int i = -1; i <= 1; ++i) {
                 for (int j = -1; j <= 1; ++j) {
