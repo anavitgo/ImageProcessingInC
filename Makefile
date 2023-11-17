@@ -1,4 +1,4 @@
-CC=clang
+CC=gcc
 SOURCES=lib/utils.c
 BINARY=out
 
