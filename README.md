@@ -21,64 +21,28 @@ No diretório lib, fizemos uma função que realiza o algoritmo de maneira seque
 Podemos observar as diretivas de paralelismo no  trecho do código abaixo. 
 
 ```void  parallelBlurImage(BMP header, int  numThreads){
+    float v = 1.0 / 9.0;
+	float kernel[3][3]= {{v, v, v},
+						{v, v, v},
+						{v, v, v}};
 
-  
-
-float v =  1.0  /  9.0;
-
-float kernel[3][3]= {{v, v, v},
-
-{v, v, v},
-
-{v, v, v}};
-
-#ifdef  USE_OMP
-
-#pragma  omp  parallel  for  shared(header, kernel) num_threads(numThreads)
-
-#endif
-
-for (int x =  1; x < header.height -  1; x++) {
-
-for (int y =  1; y < header.width -  1; y++) {
-
-float sumRed =  0.0;
-
-float sumGreen =  0.0;
-
-float sumBlue =  0.0;
-
-  
-
-#ifdef  USE_OMP
-
-#pragma  omp  simd  reduction(+:sumRed, sumGreen, sumBlue)
-
-#endif
-
-for (int i =  -1; i <=  1; ++i) {
-
-for (int j =  -1; j <=  1; ++j) {
-
-sumRed += (float)kernel[i +  1][j +  1] * header.colorTable[(x + i) * header.width + (y + j)].red;
-
-sumGreen += (float)kernel[i +  1][j +  1] * header.colorTable[(x + i) * header.width + (y + j)].green;
-
-sumBlue += (float)kernel[i +  1][j +  1] * header.colorTable[(x + i) * header.width + (y + j)].blue;
-
-}
-
-}
-
-header.colorTable[x * header.width + y].red = sumRed;
-
-header.colorTable[x * header.width + y].green = sumGreen;
-
-header.colorTable[x * header.width + y].blue = sumBlue;
-
-}
-
-}
+	for(int x = 1; x < header.height - 1; x++) {					
+		for(int y = 1; y < header.width - 1; y++) {
+			float sumRed = 0.0;
+			float sumGreen = 0.0;
+			float sumBlue = 0.0;
+			for(int i = -1; i <= 1; ++i) {
+				for(int j = -1; j <= 1; ++j) {	
+					sumRed = sumRed + (float)kernel[i + 1][j + 1] * header.colorTable[(x + i) * header.width + (y + j)].red;
+					sumGreen = sumGreen + (float)kernel[i + 1][j + 1] * header.colorTable[(x + i) * header.width + (y + j)].green;
+					sumBlue = sumBlue + (float)kernel[i + 1][j + 1] * header.colorTable[(x + i) * header.width + (y + j)].blue;
+				}
+			}
+			header.colorTable[(x) * header.width + (y)].red = sumRed;
+			header.colorTable[(x) * header.width + (y)].green = sumGreen;
+			header.colorTable[(x) * header.width + (y)].blue = sumBlue;
+		}
+	}
 
 }
 ```
@@ -111,10 +75,10 @@ Os resultados podem ser visualizados na tabela abaixo.
 
 Podemos observar mais visualmente também por meio dos seguintes gráficos a diferença do sequencial em relação ao paralelo. 
 
-![Alt text](https://drive.google.com/file/d/1TSApvHOjHB1O0Nl5WCwBisAdBjZlQgZC/view?usp=sharing "Imagem 1")
-![Alt text](https://drive.google.com/file/d/1L51JDLKnmMS-hCEsh_xRoSXurNgJLH0X/view?usp=sharing "Imagem 2")
-![Alt text](https://drive.google.com/file/d/1GGBpZMxJccagankgQ5IFIH0GX4iIwYsc/view?usp=sharing "Imagem 3")
-![Alt text](https://drive.google.com/file/d/1m1H4DhSdzWHra1mNY4NieULFDWyf1E_7/view?usp=sharing "Imagem 4")
+![Alt text](/results/result_102mb.png "Versão sequencial x paralela - Imagem 102MB")
+![Alt text](/results/result_286mb.png "Versão sequencial x paralela - Imagem 286MB")
+![Alt text](/results/result_1gb.png "Versão sequencial x paralela - Imagem 1GB")
+![Alt text](/results/result_2gb.png "Versão sequencial x paralela - Imagem 2.51GB")
 
 ## Análise
-Com a visualização dos números, podemos ver que o desempenho sequencial perde em tempo em comparação ao tempo paralelo, apesar da diferença não ser tão significativa, resultando em um speedup de 1.089, utilizando por exemplo os números da Img4 no melhor e pior caso. É importante também notar que o melhor desempenho, no geral, se dá com o uso de 6 threads. 
+Com a visualização dos resultados, podemos ver que o desempenho sequencial perde em tempo em comparação ao tempo paralelo, apesar da diferença não ser tão significativa, resultando em um speedup de 1.089, utilizando por exemplo os números da Img4 no melhor e pior caso. É importante também notar que o melhor desempenho, no geral, se dá com o uso de 6 threads. 
