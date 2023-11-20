@@ -1,26 +1,26 @@
 # Otimização Paralela de Algoritmo de Processamento de Imagem com OpenMP
-Alexandre Brito Gomes - 11857323
+**Ana Vitoria Gouvea de Oliveira Freitas - 11370196**\
+**Alexandre Brito Gomes - 11857323**\
+**Filipe Oliveira - 11219161**
 
-Ana Vitoria Gouvea de Oliveira Freitas - 11370196
-
-Filipe Oliveira - 11219161
-
-Na área de processamento de imagem, diversos algoritmos podem ser aplicados à uma imagem para alterar sua composição geral. Dentre eles, temos algoritmos de aplicação de texturas, que podem ser variadas. Um desses algoritmos é o de Blur, que diminui a incidência das cores, deixando-as menos intensas. Esse algoritmo consiste em alterar a intensidade de RGB (Red Green Blue) de cada pixel da imagem, somando um valor na escala de cores (que vai de 0 a 255). Esse foi o algoritmo escolhido para realizar uma otimização ao paralelizar esse processo.
+Na área de processamento de imagens, existem vários algoritmos aplicáveis para modificar a aparência global de uma imagem. Dentre eles, destacam-se algoritmos que aplicam texturas, oferecendo uma ampla gama de efeitos. Um exemplo desses algoritmos é o de suavização, que reduz a incidência das cores, resultando em tonalidades menos intensas. Esse método implica na modificação da intensidade dos canais RGB (Red, Green, Blue) de cada pixel na imagem, adicionando um valor à escala de cores, que varia de 0 a 255. Nesse contexto, optou-se por otimizar esse processo por meio da paralelização do algoritmo.
 
 
 # Paralelização
 
-Para paralelizar, utilizamos a biblioteca OpenMP, visto que realizamos o algoritmo em C. Optamos por paralelizar a operação de soma de cada pixel de maneira paralela. Para isso, é necessário explicar o funcionamento do código no geral. 
+Para paralelizar, utilizamos a biblioteca OpenMP, visto que essa API contempla códigos em linguagem C. Optamos por paralelizar a operação de convolução da imagem, utilizando um kernel 3x3. Para isso, é necessário explicar o funcionamento do código no geral. 
 
 Os códigos estão divididos originalmente em: 
-1- Diretório *lib*, que consiste em em funções gerais de funcionamento do código
-2 - Um diretório com imagens para teste no formato BMP (Windows Bitmap). Imagens nesse formato possuem um cabeçalho com informações sobre a imagem, como quantos pixels a imagem tem e qual é a cor de cada pixel.  Entretanto,  nesse repositório, devido ao tamanho dos arquivos, as imagens não estão disponibilizadas aqui, mas podem ser acessadas em:  https://drive.google.com/drive/folders/1NNY-GGqsoAAHUhEO1f57H9_BMbL6S3yx?usp=sharing .
-3 - Um arquivo Makefile para execução do código juntamente de um arquivo main.c. 
+1. Diretório *lib*, que consiste em funções utilitárias de leitura, escrita e aplicação do algoritmo na imagem
+2. Diretório com imagens para teste no formato BMP (Windows Bitmap), uma vez que são imagens com cabeçalho menor e de fácil leitura
+3. Arquivo Makefile para compilação, execução e definição de flags necessárias para paralelização do códgio 
 
-No diretório lib, fizemos uma função que realiza o algoritmo de maneira sequencial, e outra que realiza de maneira paralela, com 4 threads como default, mas esse valor pode ser alterado, explicado posteriormente nas instruções de como rodar o programa.
-Podemos observar as diretivas de paralelismo no  trecho do código abaixo. 
+No diretório lib, fizemos uma função que realiza o algoritmo de maneira sequencial, e outra que realiza de maneira paralela, sendo 4 a quantidade de threads padrão.
 
-```void  parallelBlurImage(BMP header, int  numThreads){
+Abaixo, é possível observar a operação de filtragem de imagem conhecida como convolução, utilizando um kernel 3x3. É possível notar que o algoritmo percorre a imagem excluindo a borda de 1 pixel, garantindo que o kernel se ajuste ao redor de cada pixel da imagem. Para cada pixel na imagem, o código realiza uma operação de convolução, multiplicando cada valor do kernel pelo valor correspondente na imagem e somando os resultados para cada canal de cor (vermelho, verde e azul).
+
+```
+void  parallelBlurImage(BMP header, int  numThreads){
     float v = 1.0 / 9.0;
 	float kernel[3][3]= {{v, v, v},
 						{v, v, v},
@@ -46,24 +46,25 @@ Podemos observar as diretivas de paralelismo no  trecho do código abaixo.
 
 }
 ```
-Utilizamos o `#pragma  omp  parallel  for  shared(header, kernel) num_threads(numThreads)` para paralelizar o loop de realizar a alteração de cada pixel, mantendo as variáveis header e kernel como shared, uma vez que elas não serão alteradas, e utilizamos a diretiva `#pragma omp simd` para indicar que as operações no loop podem ser vetorizadas. e `reduction(+:sumRed, sumGreen, sumBlue)` para garantir que essas variáveis sejam incrementadas (pois é uma soma) corretamente no final do loop paralelo. 
+Utilizamos o `#pragma  omp  parallel  for  shared(header, kernel) num_threads(numThreads)` para paralelizar o loop de alteração de cada pixel, mantendo as variáveis header e kernel como shared, uma vez que elas não serão alteradas, e utilizamos a diretiva `#pragma omp simd` para indicar que as operações no loop podem ser vetorizadas. e `reduction(+:sumRed, sumGreen, sumBlue)` para garantir que essas variáveis sejam incrementadas corretamente no final do loop paralelo. 
 
 ## Execução
 
-Para executar o código, temos duas opções: 
-1 - Caso queira executar o código sequencial, basta seguir o processo padrão de compilação do Makefile, que consiste em `make all` para compilar e `make run` para executar. 
-2 - Para o  caso paralelo, basta compilar com `make omp` e `make run` para executar. É possível também passar como parâmetro o número de threads que se deseja executar, passando como parâmetro da seguinte maneira: `make run NUM_THREADS=N`, sendo N o número de threads desejado.
- Após isso, basta digitar o caminho para a imagem desejada, e o código será executado. 
+##### Sequencial
+
+1. `make all` - Compila o código
+2. `make run` - Executa o código
+Note que o cursor do terminal irá esperar o input do usuário que deve ser o caminho completo da imagem. É possível verificar esse caminho por meio do comando `pwd`.
+
+##### Paralela
+1. `make omp` - Compila o código e aciona a flag `USE_OMP`
+2. `make run` - Executa o código e na região paralela cria 4 threads. Para criar mais threads que o padrão é possível utilizar `make run NUM_THREADS=<#>`
 
 ## Experimentação
 
-Quanto à experimentação, é importante destacar o processador utilizado, que foi um AMD Ryzen 5 3500U with Radeon Vega Mobile Gfx     2.10 GHz, que  é um processador de quatro núcleos e oito threads. Com isso, realizamos testes com no máximo 8 threads. Para realização dos testes, observamos que com imagens BMP simples, o código apresentava resultados muito semelhantes no sequencial e no paralelo, com o paralelo chegando a demorar mais em alguns casos. Logo, para isso, geramos imagens muito grandes para poder comparar desempenho de uma maneira melhor. Geramos imagens de 102 MB, 286 MB, 1.11 GB e 2.51GB, que serão chamadas como referência ao decorrer do trabalho respectivamente de img1, img2, img3 e img4.  
+Quanto à experimentação, é importante destacar o processador utilizado: AMD Ryzen 5 3500U, Radeon Vega Mobile Gfx 2.10 GHz, que  é um processador de quatro núcleos. Para realização dos testes, observamos que com imagens BMP simples, o tempo de execução apresentava resultados muito semelhantes para a versão sequencial e paralela, sendo que a versão paralela chegava a demorar mais em alguns casos. Logo, para isso, geramos imagens grandes a fim de compararmos o desempenho real de cada versão. Geramos imagens de 102 MB, 286 MB, 1.11 GB e 2.51GB.  
 
-Os resultados podem ser visualizados na tabela abaixo. 
-
-|  |  |
-|--|--|
-|  |  |
+Os resultados obtidos podem ser visualizados na tabela abaixo:
 
 
 |                |Tamanho do arquivo                          |Tempo Sequencial| Tempo paralelo 4 Threads |  Tempo paralelo 6 Threads | Tempo paralelo 7 Threads |Tempo paralelo 8 Threads
@@ -75,10 +76,21 @@ Os resultados podem ser visualizados na tabela abaixo.
 
 Podemos observar mais visualmente também por meio dos seguintes gráficos a diferença do sequencial em relação ao paralelo. 
 
-![Alt text](/results/result_102mb.png "Versão sequencial x paralela - Imagem 102MB")
-![Alt text](/results/result_286mb.png "Versão sequencial x paralela - Imagem 286MB")
-![Alt text](/results/result_1gb.png "Versão sequencial x paralela - Imagem 1GB")
-![Alt text](/results/result_2gb.png "Versão sequencial x paralela - Imagem 2.51GB")
+### Versão sequencial x paralela - Imagem 102MB
+![Alt text](/results/result_102mb.png )
+---
+
+### Versão sequencial x paralela - Imagem 286MB
+![Alt text](/results/result_286mb.png )
+---
+
+### Versão sequencial x paralela - Imagem 1GB
+![Alt text](/results/result_1gb.png )
+--- 
+
+### Versão sequencial x paralela - Imagem 2.51GB
+![Alt text](/results/result_2gb.png )
+---
 
 ## Análise
-Com a visualização dos resultados, podemos ver que o desempenho sequencial perde em tempo em comparação ao tempo paralelo, apesar da diferença não ser tão significativa, resultando em um speedup de 1.089, utilizando por exemplo os números da Img4 no melhor e pior caso. É importante também notar que o melhor desempenho, no geral, se dá com o uso de 6 threads. 
+Com a visualização dos resultados, é possível ver que o desempenho sequencial é ligeiramente pior que o paralelo, apesar da diferença não ser tão significativa, resultando em um speedup de 1.089, utilizando por exemplo os números da imagem de 2GB no melhor e pior caso. É importante também notar que o melhor desempenho, no geral, se dá com o uso de 6 threads.
